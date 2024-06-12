@@ -9,12 +9,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		.whitesource = .whitesource
+		Directory.Build.props = Directory.Build.props
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 		renovate.json = renovate.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{943421DA-CB0A-472D-9D9F-0EBD1C42A91D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitBootstrap", "GitBootstrap\GitBootstrap.csproj", "{B9931341-B6C7-4820-B5A6-9FD8B7CD73B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +33,10 @@ Global
 		{943421DA-CB0A-472D-9D9F-0EBD1C42A91D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{943421DA-CB0A-472D-9D9F-0EBD1C42A91D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{943421DA-CB0A-472D-9D9F-0EBD1C42A91D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9931341-B6C7-4820-B5A6-9FD8B7CD73B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9931341-B6C7-4820-B5A6-9FD8B7CD73B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9931341-B6C7-4820-B5A6-9FD8B7CD73B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9931341-B6C7-4820-B5A6-9FD8B7CD73B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
