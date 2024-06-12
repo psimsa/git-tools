@@ -51,9 +51,9 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Publish GitNuke
-      run: dotnet publish -c Release /p:DebugType=None /p:DebugSymbols=false src/GitNuke/GitNuke.csproj --runtime ${{ matrix.publish }} -o ./publish/${{ matrix.publish }}
+      run: dotnet publish -c Release src/GitNuke/GitNuke.csproj --runtime ${{ matrix.publish }} -o ./publish/${{ matrix.publish }}
     - name: Publish GitBootstrap
-      run: dotnet publish -c Release /p:DebugType=None /p:DebugSymbols=false src/GitBootstrap/GitBootstrap.csproj --runtime ${{ matrix.publish }} -o ./publish/${{ matrix.publish }}
+      run: dotnet publish -c Release src/GitBootstrap/GitBootstrap.csproj --runtime ${{ matrix.publish }} -o ./publish/${{ matrix.publish }}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
