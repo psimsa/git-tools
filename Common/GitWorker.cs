@@ -10,17 +10,17 @@ public class GitWorker(bool isDebug)
 
     public async Task<Result<IList<string>>> GetRemoteBranches() => await ExecuteGitCommand("branch -r --format %(refname:short)");
 
-    internal async Task<Result> Checkout(string branchName) => await ExecuteGitCommand($"checkout {branchName} --force");
+    public async Task<Result> Checkout(string branchName) => await ExecuteGitCommand($"checkout {branchName} --force");
 
-    internal async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
+    public async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
 
-    internal async Task<Result> DeleteBranch(string branch) => await ExecuteGitCommand($"branch -D {branch}");
+    public async Task<Result> DeleteBranch(string branch) => await ExecuteGitCommand($"branch -D {branch}");
 
-    internal async Task<Result<string>> GetCurrentBranch() => (await ExecuteGitCommand("branch --show-current")).Map(r => r[0]);
+    public async Task<Result<string>> GetCurrentBranch() => (await ExecuteGitCommand("branch --show-current")).Map(r => r[0]);
 
-    internal async Task<Result> Prune() => await ExecuteGitCommand("prune");
+    public async Task<Result> Prune() => await ExecuteGitCommand("prune");
 
-    internal async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
+    public async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
 
     private async Task<Result<IList<string>>> ExecuteGitCommand(string command)
     {
