@@ -36,7 +36,7 @@ public class GitWorker(bool isDebug)
             CreateNoWindow = true
         };
 
-        var sbOutput = new List<string>();
+        var gitOutputLines = new List<string>();
 
         var sbError = new StringBuilder();
 
@@ -47,7 +47,7 @@ public class GitWorker(bool isDebug)
         {
             if (string.IsNullOrWhiteSpace(e.Data))
                 return;
-            sbOutput.Add(e.Data);
+            gitOutputLines.Add(e.Data);
             if (isDebug)
                 Console.WriteLine(e.Data);
         };
@@ -69,6 +69,6 @@ public class GitWorker(bool isDebug)
         int code = process.ExitCode;
         process.Close();
 
-        return Result.SuccessIf(code == 0, sbOutput as IList<string>, sbError.ToString());
+        return Result.SuccessIf(code == 0, gitOutputLines as IList<string>, sbError.ToString());
     }
 }
