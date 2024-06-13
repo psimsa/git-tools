@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "GitRepo": {
+      "commandName": "Project",
+      "commandLineArgs": "bootstrap -e nekdo@nekde.tam -b v-lese",
+      "workingDirectory": "E:\\dev\\asadf"
+    }
+  }
+}

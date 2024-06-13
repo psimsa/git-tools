@@ -2,7 +2,7 @@
 using System.Text;
 using CSharpFunctionalExtensions;
 
-namespace GitNuke;
+namespace GitTools.Common;
 
 public class GitWorker(bool isDebug)
 {
@@ -14,6 +14,8 @@ public class GitWorker(bool isDebug)
 
     public async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
 
+    public async Task<Result> Init(string branchName) => await ExecuteGitCommand($"init -b {branchName}");
+
     public async Task<Result> DeleteBranch(string branch) => await ExecuteGitCommand($"branch -D {branch}");
 
     public async Task<Result<string>> GetCurrentBranch() => (await ExecuteGitCommand("branch --show-current")).Map(r => r[0]);
@@ -23,6 +25,8 @@ public class GitWorker(bool isDebug)
     public async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
 
     public async Task<Result> CheckIfValidGitRepo() => await ExecuteGitCommand("rev-parse --is-inside-work-tree");
+
+    public async Task<Result> SetConfigValue(string key, string value) => await ExecuteGitCommand($"config {key} {value}");
 
     private async Task<Result<IList<string>>> ExecuteGitCommand(string command)
     {

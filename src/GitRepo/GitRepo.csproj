@@ -9,18 +9,14 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<AssemblyName>git-repo</AssemblyName>
 		<IsAotCompatible>true</IsAotCompatible>
+		<RootNamespace>GitTools</RootNamespace>
+
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<DebugSymbols>False</DebugSymbols>
 		<DebugType>None</DebugType>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\Common\Common.csproj" />
-		<ProjectReference Include="..\GitBootstrap\GitBootstrap.csproj" />
-		<ProjectReference Include="..\GitNuke\GitNuke.csproj" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
