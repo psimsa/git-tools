@@ -36,7 +36,7 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
 
 static void SetupBootstrapCommand(RootCommand rootCommand, Option<bool> debugOption)
 {
-    var bootstrapCommand = new Command("bootstrap", "Bootstrap repo from parameters or template");
+    var bootstrapCommand = new Command("bootstrap", "Bootstrap repo from parameters");
 
     var templateOption = new Option<string>(new[] { "--template", "-t" }, "Template to use") { IsHidden = true };
     bootstrapCommand.AddOption(templateOption);
