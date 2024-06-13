@@ -3,9 +3,9 @@ using CSharpFunctionalExtensions;
 
 namespace GitBootstrap;
 
-public class BootstrapProcessor(bool printGitOutput) : IProcessor
+public static class BootstrapProcessor
 {
-    public async Task<Result> Run()
+    public static async Task<Result> Run(bool debug)
     {
         return Result.Success();
     }
