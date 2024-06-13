@@ -1,9 +1,9 @@
 ﻿using CSharpFunctionalExtensions;
 using GitTools.Common;
 
-namespace GitTools;
+namespace GitTools.Commands;
 
-public static class NukeProcessor
+public static class NukeCommand
 {
     public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch)
     {

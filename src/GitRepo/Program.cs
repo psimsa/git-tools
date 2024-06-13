@@ -1,5 +1,5 @@
 ﻿using System.CommandLine;
-using GitTools;
+using GitTools.Commands;
 using GitTools.Common;
 
 var rootCommand = new RootCommand("Suite of small git utilities");
@@ -24,7 +24,7 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
 
     nukeCommand.SetHandler(async (debug, quiet, noSwitchBranch) =>
     {
-        var result = await NukeProcessor.Run(debug, quiet, noSwitchBranch);
+        var result = await NukeCommand.Run(debug, quiet, noSwitchBranch);
         if (result.IsFailure)
         {
             EnhancedConsole.WriteLine(result.Error, ConsoleColor.Red);
@@ -46,7 +46,7 @@ static void SetupBootstrapCommand(RootCommand rootCommand, Option<bool> debugOpt
 
     bootstrapCommand.SetHandler(async (debug, template, defaultBranch, userEmail) =>
     {
-        var result = await BootstrapProcessor.Run(debug, template, defaultBranch, userEmail);
+        var result = await BootstrapCommand.Run(debug, template, defaultBranch, userEmail);
         if (result.IsFailure)
         {
             EnhancedConsole.WriteLine(result.Error, ConsoleColor.Red);

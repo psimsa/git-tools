@@ -1,9 +1,9 @@
 ﻿using CSharpFunctionalExtensions;
 using GitTools.Common;
 
-namespace GitTools;
+namespace GitTools.Commands;
 
-public static class BootstrapProcessor
+public static class BootstrapCommand
 {
     public static async Task<Result> Run(bool debug, string? template, string defaultBranch, string? userEmail)
     {
