@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using GitTools.Common;
 
-namespace GitTools.GitNuke;
+namespace GitTools;
 
 public static class NukeProcessor
 {

@@ -1,7 +1,6 @@
 ﻿using System.CommandLine;
+using GitTools;
 using GitTools.Common;
-using GitTools.GitBootstrap;
-using GitTools.GitNuke;
 
 var rootCommand = new RootCommand("Suite of small git utilities");
 

@@ -9,7 +9,7 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<AssemblyName>git-repo</AssemblyName>
 		<IsAotCompatible>true</IsAotCompatible>
-		<RootNamespace>GitTools.GitRepo</RootNamespace>
+		<RootNamespace>GitTools</RootNamespace>
 
 	</PropertyGroup>
 
@@ -20,8 +20,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Common\Common.csproj" />
-		<ProjectReference Include="..\GitBootstrap\GitBootstrap.csproj" />
-		<ProjectReference Include="..\GitNuke\GitNuke.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

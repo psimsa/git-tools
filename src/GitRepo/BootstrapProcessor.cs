@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using GitTools.Common;
 
-namespace GitTools.GitBootstrap;
+namespace GitTools;
 
 public static class BootstrapProcessor
 {
