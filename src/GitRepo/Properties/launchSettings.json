@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GitRepo": {
+      "commandName": "Project",
+      "commandLineArgs": "bootstrap"
+    }
+  }
+}

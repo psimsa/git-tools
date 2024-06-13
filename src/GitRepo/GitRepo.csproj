@@ -9,6 +9,8 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<AssemblyName>git-repo</AssemblyName>
 		<IsAotCompatible>true</IsAotCompatible>
+		<RootNamespace>GitTools.GitRepo</RootNamespace>
+
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">

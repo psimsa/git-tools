@@ -1,4 +1,4 @@
-﻿namespace Common;
+﻿namespace GitTools.Common;
 
 public static class EnhancedConsole
 {

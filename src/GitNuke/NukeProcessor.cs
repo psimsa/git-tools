@@ -1,15 +1,15 @@
-﻿using Common;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
+using GitTools.Common;
 
-namespace GitNuke;
+namespace GitTools.GitNuke;
 
 public static class NukeProcessor
 {
     public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch)
     {
-        var runner = new GitWorker(debug);
+        var worker = new GitWorker(debug);
 
-        var validRepoResult = await runner.CheckIfValidGitRepo();
+        var validRepoResult = await worker.CheckIfValidGitRepo();
         if (validRepoResult.IsFailure)
         {
             return Result.Failure("Not a git repo");
@@ -17,7 +17,7 @@ public static class NukeProcessor
 
         if (!quiet && !RequestConfirmation()) return Result.Failure("User cancelled operation.");
 
-        var branchesResult = await runner.GetBranches();
+        var branchesResult = await worker.GetBranches();
         if (branchesResult.IsFailure)
         {
             return branchesResult;
@@ -28,7 +28,7 @@ public static class NukeProcessor
 
         if (noSwitchBranch)
         {
-            var wbresult = await runner.GetCurrentBranch();
+            var wbresult = await worker.GetCurrentBranch();
             if (wbresult.IsFailure)
             {
                 return wbresult;
@@ -38,7 +38,7 @@ public static class NukeProcessor
         }
         else
         {
-            var remoteBranchesResult = await runner.GetRemoteBranches();
+            var remoteBranchesResult = await worker.GetRemoteBranches();
 
             IEnumerable<string> branches = branchesResult.Value.Concat(remoteBranchesResult.IsSuccess
                 ? remoteBranchesResult.Value.Where(_ => _ != "origin").Select(_ => _.Replace("origin/", ""))
@@ -51,13 +51,13 @@ public static class NukeProcessor
             }
             Console.WriteLine($"Found main or master branch: {workingBranch}");
 
-            result = await runner.Reset();
+            result = await worker.Reset();
             if (result.IsFailure)
             {
                 return result;
             }
 
-            result = await runner.Checkout(workingBranch);
+            result = await worker.Checkout(workingBranch);
             if (result.IsFailure)
             {
                 return result;
@@ -65,20 +65,20 @@ public static class NukeProcessor
         }
 
         var branchesToDelete = branchesResult.Value.Where(b => b != workingBranch);
-        result = await DeleteNonDefaultBranches(branchesToDelete, runner, workingBranch);
+        result = await DeleteNonDefaultBranches(branchesToDelete, worker, workingBranch);
         if (result.IsFailure)
         {
             return result;
         }
 
-        result = await runner.Pull();
+        result = await worker.Pull();
         if (result.IsFailure)
         {
             return result;
         }
         Console.WriteLine("Pulled changes from remote repository.");
 
-        result = await runner.Prune();
+        result = await worker.Prune();
         if (result.IsFailure)
         {
             return result;

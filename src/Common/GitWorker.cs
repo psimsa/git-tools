@@ -2,7 +2,7 @@
 using System.Text;
 using CSharpFunctionalExtensions;
 
-namespace GitNuke;
+namespace GitTools.Common;
 
 public class GitWorker(bool isDebug)
 {
@@ -13,6 +13,8 @@ public class GitWorker(bool isDebug)
     public async Task<Result> Checkout(string branchName) => await ExecuteGitCommand($"checkout {branchName} --force");
 
     public async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
+
+    public async Task<Result> Init(string branchName) => await ExecuteGitCommand($"init && git checkout -b {branchName}");
 
     public async Task<Result> DeleteBranch(string branch) => await ExecuteGitCommand($"branch -D {branch}");
 

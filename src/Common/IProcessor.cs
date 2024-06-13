@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace Common;
+namespace GitTools.Common;
 
 public interface IProcessor
 {
