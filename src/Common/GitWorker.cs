@@ -22,6 +22,8 @@ public class GitWorker(bool isDebug)
 
     public async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
 
+    public async Task<Result> CheckIfValidGitRepo() => await ExecuteGitCommand("rev-parse --is-inside-work-tree");
+
     private async Task<Result<IList<string>>> ExecuteGitCommand(string command)
     {
         ProcessStartInfo processStartInfo = new ProcessStartInfo

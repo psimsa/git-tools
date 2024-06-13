@@ -5,37 +5,17 @@ namespace GitNuke;
 
 public static class NukeProcessor
 {
-    private static bool RequestConfirmation()
-    {
-        Console.WriteLine("This command will switch to main/master branch remove other local branches.");
-        EnhancedConsole.WriteLine("This will undo any local changes and is not reversible.", ConsoleColor.Red);
-        Console.WriteLine("Are you sure you want to continue? [y/N]");
-        var key = Console.ReadKey();
-        Console.WriteLine();
-        return key.KeyChar is 'y' or 'Y';
-    }
-
-    private static async Task<Result> DeleteNonDefaultBranches(IEnumerable<string> branchesToDelete, GitWorker gitRunner, string workingBranch)
-    {
-        foreach (var branch in branchesToDelete)
-        {
-            var deleteResult = await gitRunner.DeleteBranch(branch);
-            if (deleteResult.IsFailure)
-            {
-                return deleteResult;
-            }
-            Console.WriteLine($"Deleted branch: {branch}");
-        }
-
-        Console.WriteLine($"All branches deleted except for {workingBranch}");
-        return Result.Success();
-    }
-
     public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch)
     {
-        if (!quiet && !RequestConfirmation()) return Result.Failure("User cancelled operation.");
-
         var runner = new GitWorker(debug);
+
+        var validRepoResult = await runner.CheckIfValidGitRepo();
+        if (validRepoResult.IsFailure)
+        {
+            return Result.Failure("Not a git repo");
+        }
+
+        if (!quiet && !RequestConfirmation()) return Result.Failure("User cancelled operation.");
 
         var branchesResult = await runner.GetBranches();
         if (branchesResult.IsFailure)
@@ -105,5 +85,31 @@ public static class NukeProcessor
         }
 
         return Result.Success();
+    }
+
+    private static async Task<Result> DeleteNonDefaultBranches(IEnumerable<string> branchesToDelete, GitWorker gitRunner, string workingBranch)
+    {
+        foreach (var branch in branchesToDelete)
+        {
+            var deleteResult = await gitRunner.DeleteBranch(branch);
+            if (deleteResult.IsFailure)
+            {
+                return deleteResult;
+            }
+            Console.WriteLine($"Deleted branch: {branch}");
+        }
+
+        Console.WriteLine($"All branches deleted except for {workingBranch}");
+        return Result.Success();
+    }
+
+    private static bool RequestConfirmation()
+    {
+        Console.WriteLine("This command will switch to main/master branch remove other local branches.");
+        EnhancedConsole.WriteLine("This will undo any local changes and is not reversible.", ConsoleColor.Red);
+        Console.WriteLine("Are you sure you want to continue? [y/N]");
+        var key = Console.ReadKey();
+        Console.WriteLine();
+        return key.KeyChar is 'y' or 'Y';
     }
 }
