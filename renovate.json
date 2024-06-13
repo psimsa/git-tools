@@ -1,6 +1,6 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "local>psimsa/renovate-config"
-  ]
+    "extends": [
+        "config:base",
+        "github>ofcoursedude/renovate-config"
+    ]
 }
