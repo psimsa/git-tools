@@ -10,17 +10,19 @@ public class GitWorker(bool isDebug)
 
     public async Task<Result<IList<string>>> GetRemoteBranches() => await ExecuteGitCommand("branch -r --format %(refname:short)");
 
-    internal async Task<Result> Checkout(string branchName) => await ExecuteGitCommand($"checkout {branchName} --force");
+    public async Task<Result> Checkout(string branchName) => await ExecuteGitCommand($"checkout {branchName} --force");
 
-    internal async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
+    public async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
 
-    internal async Task<Result> DeleteBranch(string branch) => await ExecuteGitCommand($"branch -D {branch}");
+    public async Task<Result> DeleteBranch(string branch) => await ExecuteGitCommand($"branch -D {branch}");
 
-    internal async Task<Result<string>> GetCurrentBranch() => (await ExecuteGitCommand("branch --show-current")).Map(r => r[0]);
+    public async Task<Result<string>> GetCurrentBranch() => (await ExecuteGitCommand("branch --show-current")).Map(r => r[0]);
 
-    internal async Task<Result> Prune() => await ExecuteGitCommand("prune");
+    public async Task<Result> Prune() => await ExecuteGitCommand("prune");
 
-    internal async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
+    public async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
+
+    public async Task<Result> CheckIfValidGitRepo() => await ExecuteGitCommand("rev-parse --is-inside-work-tree");
 
     private async Task<Result<IList<string>>> ExecuteGitCommand(string command)
     {
@@ -34,7 +36,7 @@ public class GitWorker(bool isDebug)
             CreateNoWindow = true
         };
 
-        var sbOutput = new List<string>();
+        var gitOutputLines = new List<string>();
 
         var sbError = new StringBuilder();
 
@@ -45,7 +47,7 @@ public class GitWorker(bool isDebug)
         {
             if (string.IsNullOrWhiteSpace(e.Data))
                 return;
-            sbOutput.Add(e.Data);
+            gitOutputLines.Add(e.Data);
             if (isDebug)
                 Console.WriteLine(e.Data);
         };
@@ -67,6 +69,6 @@ public class GitWorker(bool isDebug)
         int code = process.ExitCode;
         process.Close();
 
-        return Result.SuccessIf(code == 0, sbOutput as IList<string>, sbError.ToString());
+        return Result.SuccessIf(code == 0, gitOutputLines as IList<string>, sbError.ToString());
     }
 }
