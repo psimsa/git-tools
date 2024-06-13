@@ -3,20 +3,8 @@ using Spectre.Console;
 
 namespace GitNuke;
 
-internal class Processor(bool printGitOutput, bool requestConfirmation, bool noSwitchBranch)
+public class NukeProcessor(bool printGitOutput, bool requestConfirmation, bool noSwitchBranch) : Common.IProcessor
 {
-    private static void PrintHeader()
-    {
-        AnsiConsole.MarkupLine("[link=https://github.com/psimsa/git-nuke]GitNuke[/] - Delete all branches except main or master branch.");
-        AnsiConsole.MarkupLine("Usage: git nuke [[--debug/-d]] [[--quiet/-q]] [[--no-switch-branch/-n]]");
-        AnsiConsole.MarkupLine("");
-        AnsiConsole.MarkupLine("Options:");
-        AnsiConsole.MarkupLine("  --debug, -d             Show git command output");
-        AnsiConsole.MarkupLine("  --quiet, -q             Do not ask for confirmation");
-        AnsiConsole.MarkupLine("  --no-switch-branch, -n  Do not switch to main or master branch");
-        AnsiConsole.MarkupLine("");
-    }
-
     private static bool RequestConfirmation()
     {
         AnsiConsole.MarkupLine("This command will switch to main/master branch remove other local branches.");
@@ -45,8 +33,6 @@ internal class Processor(bool printGitOutput, bool requestConfirmation, bool noS
 
     public async Task<Result> Run()
     {
-        PrintHeader();
-
         if (requestConfirmation && !RequestConfirmation()) return Result.Failure("User cancelled operation.");
 
         var runner = new GitWorker(printGitOutput);
