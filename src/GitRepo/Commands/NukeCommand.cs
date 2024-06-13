@@ -106,7 +106,7 @@ public static class NukeCommand
     private static bool RequestConfirmation()
     {
         Console.WriteLine("This command will switch to main/master branch remove other local branches.");
-        EnhancedConsole.WriteLine("This will undo any local changes and is not reversible.", ConsoleColor.Red);
+        ColorfulConsole.WriteLine("This will undo any local changes and is not reversible.", ConsoleColor.Red);
         Console.WriteLine("Are you sure you want to continue? [y/N]");
         var key = Console.ReadKey();
         Console.WriteLine();

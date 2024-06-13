@@ -1,6 +1,6 @@
 ﻿namespace GitTools.Common;
 
-public static class EnhancedConsole
+public static class ColorfulConsole
 {
     public static void WriteLine(string message, ConsoleColor color)
     {

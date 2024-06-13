@@ -27,7 +27,7 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
         var result = await NukeCommand.Run(debug, quiet, noSwitchBranch);
         if (result.IsFailure)
         {
-            EnhancedConsole.WriteLine(result.Error, ConsoleColor.Red);
+            ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
         }
     }, debugOption, quietOption, noSwitchBranchOption);
     rootCommand.Add(nukeCommand);
@@ -49,7 +49,7 @@ static void SetupBootstrapCommand(RootCommand rootCommand, Option<bool> debugOpt
         var result = await BootstrapCommand.Run(debug, template, defaultBranch, userEmail);
         if (result.IsFailure)
         {
-            EnhancedConsole.WriteLine(result.Error, ConsoleColor.Red);
+            ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
         }
     }, debugOption, templateOption, defaultBranchOption, userEmailOption);
     rootCommand.Add(bootstrapCommand);
