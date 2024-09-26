@@ -16,20 +16,22 @@ await rootCommand.InvokeAsync(args);
 static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
 {
     var nukeCommand = new Command("nuke", "Clean-up current repo");
-
+    
     var quietOption = new Option<bool>(["--quiet", "-q"], () => false, "Do not ask for confirmation");
     nukeCommand.AddOption(quietOption);
     var noSwitchBranchOption = new Option<bool>(["--no-switch-branch", "-n"], () => false, "Do not switch to main or master branch");
     nukeCommand.AddOption(noSwitchBranchOption);
+    var useBranchOption = new Option<string>(["--use-branch", "-b"], "Branch to use instead of main or master branch");
+    nukeCommand.AddOption(useBranchOption);
 
-    nukeCommand.SetHandler(async (debug, quiet, noSwitchBranch) =>
+    nukeCommand.SetHandler(async (debug, quiet, noSwitchBranch, useBranch) =>
     {
-        var result = await NukeCommand.Run(debug, quiet, noSwitchBranch);
+        var result = await NukeCommand.Run(debug, quiet, noSwitchBranch, useBranch);
         if (result.IsFailure)
         {
             ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
         }
-    }, debugOption, quietOption, noSwitchBranchOption);
+    }, debugOption, quietOption, noSwitchBranchOption, useBranchOption);
     rootCommand.Add(nukeCommand);
 }
 

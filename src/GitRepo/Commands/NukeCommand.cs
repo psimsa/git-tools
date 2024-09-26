@@ -5,7 +5,7 @@ namespace GitTools.Commands;
 
 public static class NukeCommand
 {
-    public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch)
+    public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch, string useBranch)
     {
         var worker = new GitWorker(debug);
 
@@ -38,18 +38,25 @@ public static class NukeCommand
         }
         else
         {
-            var remoteBranchesResult = await worker.GetRemoteBranches();
-
-            IEnumerable<string> branches = branchesResult.Value.Concat(remoteBranchesResult.IsSuccess
-                ? remoteBranchesResult.Value.Where(_ => _ != "origin").Select(_ => _.Replace("origin/", ""))
-                : Array.Empty<string>());
-
-            workingBranch = branches.FirstOrDefault(b => b is "main" or "master");
-            if (workingBranch == null)
+            if (string.IsNullOrWhiteSpace(useBranch))
             {
-                return Result.Failure("No main or master branch found.");
+                var remoteBranchesResult = await worker.GetRemoteBranches();
+
+                IEnumerable<string> branches = branchesResult.Value.Concat(remoteBranchesResult.IsSuccess
+                    ? remoteBranchesResult.Value.Where(_ => _ != "origin").Select(_ => _.Replace("origin/", ""))
+                    : Array.Empty<string>());
+
+                workingBranch = branches.FirstOrDefault(b => b is "main" or "master");
+                if (workingBranch == null)
+                {
+                    return Result.Failure("No main or master branch found.");
+                }
+                Console.WriteLine($"Found main or master branch: {workingBranch}");
             }
-            Console.WriteLine($"Found main or master branch: {workingBranch}");
+            else
+            {
+                workingBranch = useBranch;
+            }
 
             result = await worker.Reset();
             if (result.IsFailure)
