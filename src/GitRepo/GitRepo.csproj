@@ -10,7 +10,8 @@
 		<AssemblyName>git-repo</AssemblyName>
 		<IsAotCompatible>true</IsAotCompatible>
 		<RootNamespace>GitTools</RootNamespace>
-
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>git-repo</ToolCommandName>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -20,6 +21,10 @@
 
 	<ItemGroup>
 	  <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="CSharpfunctionalextensions" Version="3.1.0" />
 	</ItemGroup>
 
 </Project>
