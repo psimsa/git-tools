@@ -15,7 +15,8 @@ public static class NukeCommand
             return Result.Failure("Not a git repo");
         }
 
-        if (!quiet && !RequestConfirmation()) return Result.Failure("User cancelled operation.");
+        if (!quiet && !RequestConfirmation())
+            return Result.Failure("User cancelled operation.");
 
         var branchesResult = await worker.GetBranches();
         if (branchesResult.IsFailure)
@@ -40,9 +41,13 @@ public static class NukeCommand
         {
             var remoteBranchesResult = await worker.GetRemoteBranches();
 
-            IEnumerable<string> branches = branchesResult.Value.Concat(remoteBranchesResult.IsSuccess
-                ? remoteBranchesResult.Value.Where(_ => _ != "origin").Select(_ => _.Replace("origin/", ""))
-                : Array.Empty<string>());
+            IEnumerable<string> branches = branchesResult.Value.Concat(
+                remoteBranchesResult.IsSuccess
+                    ? remoteBranchesResult
+                        .Value.Where(_ => _ != "origin")
+                        .Select(_ => _.Replace("origin/", ""))
+                    : Array.Empty<string>()
+            );
 
             workingBranch = branches.FirstOrDefault(b => b is "main" or "master");
             if (workingBranch == null)
@@ -87,7 +92,11 @@ public static class NukeCommand
         return Result.Success();
     }
 
-    private static async Task<Result> DeleteNonDefaultBranches(IEnumerable<string> branchesToDelete, GitWorker gitRunner, string workingBranch)
+    private static async Task<Result> DeleteNonDefaultBranches(
+        IEnumerable<string> branchesToDelete,
+        GitWorker gitRunner,
+        string workingBranch
+    )
     {
         foreach (var branch in branchesToDelete)
         {
@@ -105,8 +114,13 @@ public static class NukeCommand
 
     private static bool RequestConfirmation()
     {
-        Console.WriteLine("This command will switch to main/master branch remove other local branches.");
-        ColorfulConsole.WriteLine("This will undo any local changes and is not reversible.", ConsoleColor.Red);
+        Console.WriteLine(
+            "This command will switch to main/master branch remove other local branches."
+        );
+        ColorfulConsole.WriteLine(
+            "This will undo any local changes and is not reversible.",
+            ConsoleColor.Red
+        );
         Console.WriteLine("Are you sure you want to continue? [y/N]");
         var key = Console.ReadKey();
         Console.WriteLine();
