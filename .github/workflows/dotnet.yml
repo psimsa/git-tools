@@ -21,7 +21,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
@@ -45,13 +45,13 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
     - name: Publish GitRepo
-      run: dotnet publish -c Release src/GitRepo/GitRepo.csproj --runtime ${{ matrix.publish }} -o ./publish/${{ matrix.publish }}
+      run: dotnet publish -c Release src/GitRepo/GitRepo.csproj --runtime ${{ matrix.publish }} -o ./publish/${{ matrix.publish }} -p:PublishAot=true
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:

@@ -2,14 +2,21 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<PublishAot>true</PublishAot>
+		<PublishAot>false</PublishAot>
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<AssemblyName>git-repo</AssemblyName>
 		<IsAotCompatible>true</IsAotCompatible>
 		<RootNamespace>GitTools</RootNamespace>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<Title>Git Repo</Title>
+		<RepositoryUrl>https://github.com/psimsa/git-tools</RepositoryUrl>
+		<PackAsTool>True</PackAsTool>
+		<PackageId>psimsa.GitRepo</PackageId>
+		<PackageProjectUrl>https://github.com/psimsa/git-tools</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 
 	</PropertyGroup>
 
@@ -17,6 +24,13 @@
 		<DebugSymbols>False</DebugSymbols>
 		<DebugType>None</DebugType>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
