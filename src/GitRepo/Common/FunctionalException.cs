@@ -1,6 +1,6 @@
 ﻿namespace GitTools.Common;
 
-internal class FunctionalException : Exception
+public class FunctionalException : Exception
 {
     public FunctionalException(string message)
         : base(message) { }
