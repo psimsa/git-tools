@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using GitTools.Common;
+﻿using GitTools.Common;
 
 namespace GitTools.Commands;
 

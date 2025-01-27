@@ -1,4 +1,3 @@
-using CSharpFunctionalExtensions;
 using GitTools.Common;
 
 namespace GitTools.Commands;

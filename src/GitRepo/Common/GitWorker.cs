@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using CSharpFunctionalExtensions;
 
 namespace GitTools.Common;
 
@@ -26,8 +25,11 @@ public class GitWorker(bool isDebug)
     public async Task<Result> DeleteBranch(string branch) =>
         await ExecuteGitCommand($"branch -D {branch}");
 
-    public async Task<Result<string>> GetCurrentBranch() =>
-        (await ExecuteGitCommand("branch --show-current")).Map(r => r[0]);
+    public async Task<Result<string>> GetCurrentBranch()
+    {
+        var result = await ExecuteGitCommand("branch --show-current");
+        return Result<string>.SuccessIf(result.IsSuccess, result.Value![0], result.Error);
+    }
 
     public async Task<Result> Prune() => await ExecuteGitCommand("prune");
 
@@ -96,6 +98,6 @@ public class GitWorker(bool isDebug)
         int code = process.ExitCode;
         process.Close();
 
-        return Result.SuccessIf(code == 0, gitOutputLines as IList<string>, sbError.ToString());
+        return Result<IList<string>>.SuccessIf(code == 0, gitOutputLines as IList<string>, sbError.ToString());
     }
 }
