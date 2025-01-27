@@ -40,15 +40,7 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
     );
     nukeCommand.AddOption(useBranchOption);
 
-    nukeCommand.SetHandler(
-        async (debug, quiet, noSwitchBranch, useBranch) =>
-        {
-            var result = await NukeCommand.Run(debug, quiet, noSwitchBranch, useBranch);
-            if (result.IsFailure)
-            {
-                ColorfulConsole.Log(result.Error, ConsoleColor.Red);
-            }
-        },
+    nukeCommand.SetHandler(NukeCommand.Run,
         debugOption,
         quietOption,
         noSwitchBranchOption,
@@ -78,15 +70,7 @@ static void SetupTidyBranchCommand(RootCommand rootCommand, Option<bool> debugOp
     );
     tidyBranchCommand.AddOption(targetBranchOption);
 
-    tidyBranchCommand.SetHandler(
-        async (debug, quiet, targetBranch) =>
-        {
-            var result = await TidyBranchCommand.Run(debug, quiet, targetBranch);
-            if (result.IsFailure)
-            {
-                ColorfulConsole.Log(result.Error, ConsoleColor.Red);
-            }
-        },
+    tidyBranchCommand.SetHandler(TidyBranchCommand.Run,
         debugOption,
         quietOption,
         targetBranchOption
@@ -112,15 +96,7 @@ static void SetupBootstrapCommand(RootCommand rootCommand, Option<bool> debugOpt
     var userEmailOption = new Option<string>(new[] { "--user-email", "-e" }, "User email to use");
     bootstrapCommand.AddOption(userEmailOption);
 
-    bootstrapCommand.SetHandler(
-        async (debug, template, defaultBranch, userEmail) =>
-        {
-            var result = await BootstrapCommand.Run(debug, template, defaultBranch, userEmail);
-            if (result.IsFailure)
-            {
-                ColorfulConsole.Log(result.Error, ConsoleColor.Red);
-            }
-        },
+    bootstrapCommand.SetHandler(BootstrapCommand.Run,
         debugOption,
         templateOption,
         defaultBranchOption,

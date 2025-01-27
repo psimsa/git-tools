@@ -5,49 +5,57 @@ namespace GitTools.Commands;
 
 public static class TidyBranchCommand
 {
-    internal static async Task<Result> Run(bool debug, bool quiet, string? targetBranch)
+    internal static async Task Run(bool debug, bool quiet, string? targetBranch)
     {
-        var worker = new GitWorker(debug);
-
-        await CheckValidGitRepo(worker).EndOnError();
-
-        if (!quiet && !RequestConfirmation())
-            return Result.Failure("User cancelled operation.");
-
-        var allBranches = (await GetCombinedBranches(worker).EndOnError()).Value;
-
-        var workingBranch = (await GetWorkingBranch(worker).EndOnError()).Value!;
-
-        await PullLatestChanges(worker).EndOnError();
-
-        var upstreamBranch = (await GetUpstreamBranch(worker).EndOnError()).Value;
-
-        targetBranch ??= allBranches.FirstOrDefault(b => b is "main" or "master");
-        if (targetBranch == null)
-            return Result.Failure("Target branch not found.");
-        Logger.Log($"Will use target branch: {targetBranch}");
-
-        var backupBranch = $"{workingBranch}-backup";
-        await CreateBackupBranch(worker, backupBranch).EndOnError();
-
-        await RecreateWorkingBranch(worker, workingBranch, targetBranch).EndOnError();
-
-        await MergeBackupIntoWorkingBranch(worker, backupBranch).EndOnError();
-
-        await CommitChanges(worker, workingBranch, targetBranch).EndOnError();
-
-        if (upstreamBranch != null)
+        try
         {
-            await SetUpstreamBranch(worker, upstreamBranch).EndOnError();
-        }
+            var worker = new GitWorker(debug);
 
-        return Result.Success();
+            await CheckValidGitRepo(worker);
+
+            if (!quiet && !RequestConfirmation())
+            {
+                throw new FunctionalException("User cancelled operation.");
+            }
+
+            var allBranches = await GetCombinedBranches(worker);
+
+            var workingBranch = await GetWorkingBranch(worker);
+
+            await PullLatestChanges(worker);
+
+            var upstreamBranch = await GetUpstreamBranch(worker);
+
+            targetBranch ??= allBranches.FirstOrDefault(b => b is "main" or "master");
+            if (targetBranch == null)
+            {
+                throw new FunctionalException("Target branch not found.");
+            }
+            Logger.Log($"Will use target branch: {targetBranch}");
+
+            var backupBranch = $"{workingBranch}-backup";
+            await CreateBackupBranch(worker, backupBranch);
+
+            await RecreateWorkingBranch(worker, workingBranch, targetBranch);
+
+            await MergeBackupIntoWorkingBranch(worker, backupBranch);
+
+            await CommitChanges(worker, workingBranch, targetBranch);
+
+            if (upstreamBranch != null)
+            {
+                await SetUpstreamBranch(worker, upstreamBranch);
+            }
+        }
+        catch (FunctionalException e)
+        {
+            ColorfulConsole.Log(e.Message, ConsoleColor.Red);
+        }
     }
 
-    private static async Task<Result> CheckValidGitRepo(GitWorker worker)
+    private static async Task CheckValidGitRepo(GitWorker worker)
     {
-        await worker.CheckIfValidGitRepo().EndOnError("Not a git repo");
-        return Result.Success();
+        await worker.CheckIfValidGitRepo().ThrowOnError("Not a git repo");
     }
 
     private static bool RequestConfirmation()
@@ -61,105 +69,96 @@ public static class TidyBranchCommand
         return key.KeyChar is 'y' or 'Y';
     }
 
-    private static async Task<Result<IEnumerable<string>>> GetCombinedBranches(GitWorker worker)
+    private static async Task<IEnumerable<string>> GetCombinedBranches(GitWorker worker)
     {
-        var localBranchesResult = await worker.GetBranches().EndOnError();
+        var localBranchesResult = await worker.GetBranches().ThrowOnError();
 
-        var remoteBranchesResult = await worker.GetRemoteBranches().EndOnError();
+        var remoteBranchesResult = await worker.GetRemoteBranches().ThrowOnError();
 
-        var combinedBranches = localBranchesResult.Value.Concat(
+        var combinedBranches = localBranchesResult.Concat(
             remoteBranchesResult
-                .Value.Where(branch => branch != "origin")
+                .Where(branch => branch != "origin")
                 .Select(branch => branch.Replace("origin/", ""))
         );
 
-        return Result.Success(combinedBranches);
+        return combinedBranches;
     }
 
-    private static async Task<Result<string>> GetWorkingBranch(GitWorker worker)
+    private static async Task<string> GetWorkingBranch(GitWorker worker)
     {
-        var result = await worker.GetCurrentBranch().EndOnError();
+        var result = await worker.GetCurrentBranch().ThrowOnError();
 
-        Logger.Log($"Working branch: {result.Value}");
-        return Result.Success(result.Value);
+        Logger.Log($"Working branch: {result}");
+        return result;
     }
 
-    private static async Task<Result> PullLatestChanges(GitWorker worker)
+    private static async Task PullLatestChanges(GitWorker worker)
     {
-        await worker.Pull().EndOnError();
+        await worker.Pull().ThrowOnError();
 
         Logger.Log("Pulled latest changes.");
-        return Result.Success();
     }
 
-    private static async Task<Result<string?>> GetUpstreamBranch(GitWorker worker)
+    private static async Task<string?> GetUpstreamBranch(GitWorker worker)
     {
-        var result = await worker.GetCurrentUpstreamBranch().EndOnError();
+        var result = await worker.GetCurrentUpstreamBranch().ThrowOnError();
 
-        if (result.Value.Count > 0)
-        {
-            var upstreamBranch = result.Value[0];
-            Logger.Log($"Current upstream branch: {upstreamBranch}");
-            return Result.Success<string?>(upstreamBranch);
-        }
+        if (result.Count == 0)
+            return null;
 
-        return Result.Success<string?>(null);
+        var upstreamBranch = result[0];
+        Logger.Log($"Current upstream branch: {upstreamBranch}");
+        return upstreamBranch;
     }
 
-    private static async Task<Result> CreateBackupBranch(GitWorker worker, string backupBranch)
+    private static async Task CreateBackupBranch(GitWorker worker, string backupBranch)
     {
-        await worker.CheckoutNew(backupBranch).EndOnError();
+        await worker.CheckoutNew(backupBranch).ThrowOnError();
         Logger.Log($"Created backup branch: {backupBranch}");
-        return Result.Success();
     }
 
-    private static async Task<Result> RecreateWorkingBranch(
+    private static async Task RecreateWorkingBranch(
         GitWorker worker,
         string workingBranch,
         string targetBranch
     )
     {
-        await worker.Checkout(targetBranch).EndOnError();
+        await worker.Checkout(targetBranch).ThrowOnError();
 
-        await worker.DeleteBranch(workingBranch).EndOnError();
+        await worker.DeleteBranch(workingBranch).ThrowOnError();
         Logger.Log($"Deleted branch: {workingBranch}");
 
-        await worker.CheckoutNew(workingBranch).EndOnError();
+        await worker.CheckoutNew(workingBranch).ThrowOnError();
         Logger.Log($"Recreated branch {workingBranch} from {targetBranch}");
-
-        return Result.Success();
     }
 
-    private static async Task<Result> MergeBackupIntoWorkingBranch(
+    private static async Task MergeBackupIntoWorkingBranch(
         GitWorker worker,
         string backupBranch
     )
     {
-        await worker.MergeAndSquash(backupBranch).EndOnError();
+        await worker.MergeAndSquash(backupBranch).ThrowOnError();
 
         Logger.Log($"Merged {backupBranch} into the working branch");
-        return Result.Success();
     }
 
-    private static async Task<Result> CommitChanges(
+    private static async Task CommitChanges(
         GitWorker worker,
         string workingBranch,
         string targetBranch
     )
     {
         var message = $"Tidy branch {workingBranch} based on {targetBranch}";
-        await worker.CommitStaged(message).EndOnError();
+        await worker.CommitStaged(message).ThrowOnError();
 
         Logger.Log($"Committed changes to {workingBranch}");
-        return Result.Success();
     }
 
-    private static async Task<Result> SetUpstreamBranch(GitWorker worker, string upstreamBranch)
+    private static async Task SetUpstreamBranch(GitWorker worker, string upstreamBranch)
     {
-        await worker.SetUpstreamBranch(upstreamBranch).EndOnError();
+        await worker.SetUpstreamBranch(upstreamBranch).ThrowOnError();
 
         Logger.Log($"Set upstream branch to {upstreamBranch}");
         Logger.Log("You will likely need to force-push your changes to the remote repository.");
-        return Result.Success();
     }
 }

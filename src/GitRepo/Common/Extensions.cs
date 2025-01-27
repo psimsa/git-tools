@@ -9,35 +9,44 @@ namespace GitTools.Common;
 
 public static class Extensions
 {
-    public static Result EndOnError(this Result result, string? message = null)
+    public static void ThrowOnError(this Result result, string? message = null)
     {
         if (result.IsFailure)
         {
-            Logger.Log(message ?? result.Error);
-            Environment.Exit(1);
+            throw new FunctionalException(message ?? result.Error);
         }
-        return result;
     }
 
-    public static Result<T> EndOnError<T>(this Result<T> result, string? message = null)
+    public static T ThrowOnError<T>(this Result<T> result, string? message = null)
     {
         if (result.IsFailure)
         {
-            Logger.Log(message ?? result.Error);
-            Environment.Exit(1);
+            throw new FunctionalException(message ?? result.Error);
         }
-        return result;
+        return result.Value;
     }
 
-    public static async Task<Result> EndOnError(this Task<Result> task, string? message = null)
+    public static async Task ThrowOnError(this Task<Result> task, string? message = null)
     {
         var result = await task;
-        return result.EndOnError(message);
+        result.ThrowOnError(message);
     }
 
-    public static async Task<Result<T>> EndOnError<T>(this Task<Result<T>> task, string? message = null)
+    public static async Task<T> ThrowOnError<T>(this Task<Result<T>> task, string? message = null)
     {
         var result = await task;
-        return result.EndOnError(message);
+        return result.ThrowOnError(message);
     }
+}
+
+internal class FunctionalException : Exception
+{
+    public FunctionalException(string message)
+        : base(message) { }
+
+    public FunctionalException()
+        : base() { }
+
+    public FunctionalException(string? message, Exception? innerException)
+        : base(message, innerException) { }
 }

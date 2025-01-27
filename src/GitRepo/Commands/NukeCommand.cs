@@ -5,65 +5,67 @@ namespace GitTools.Commands;
 
 public static class NukeCommand
 {
-    public static async Task<Result> Run(
-        bool debug,
-        bool quiet,
-        bool noSwitchBranch,
-        string? useBranch
-    )
+    public static async Task Run(bool debug, bool quiet, bool noSwitchBranch, string? useBranch)
     {
-        var worker = new GitWorker(debug);
-
-        await worker.CheckIfValidGitRepo().EndOnError("Not a git repo");
-
-        if (!quiet && !RequestConfirmation())
-            return Result.Failure("User cancelled operation.");
-
-        var branchesResult = await worker.GetBranches().EndOnError();
-
-        string? workingBranch;
-
-        if (noSwitchBranch)
+        try
         {
-            workingBranch = (await worker.GetCurrentBranch().EndOnError()).Value;
-            Logger.Log($"Working branch: {workingBranch}");
-        }
-        else
-        {
-            var remoteBranchesResult = await worker.GetRemoteBranches();
+            var worker = new GitWorker(debug);
 
-            IEnumerable<string> branches = branchesResult.Value.Concat(
-                remoteBranchesResult.IsSuccess
-                    ? remoteBranchesResult
-                        .Value.Where(_ => _ != "origin")
-                        .Select(_ => _.Replace("origin/", ""))
-                    : Array.Empty<string>()
-            );
+            await worker.CheckIfValidGitRepo().ThrowOnError("Not a git repo");
 
-            workingBranch = useBranch ?? branches.FirstOrDefault(b => b is "main" or "master");
-            if (workingBranch == null)
+            if (!quiet && !RequestConfirmation())
             {
-                return Result.Failure("No main or master branch found.");
+                throw new FunctionalException("User cancelled operation.");
             }
-            Logger.Log($"Will use branch: {workingBranch}");
 
-            await worker.Reset().EndOnError();
+            var localBranches = await worker.GetBranches().ThrowOnError();
 
-            await worker.Checkout(workingBranch).EndOnError();
+            string? workingBranch;
+
+            if (noSwitchBranch)
+            {
+                workingBranch = (await worker.GetCurrentBranch().ThrowOnError());
+                Logger.Log($"Working branch: {workingBranch}");
+            }
+            else
+            {
+                var remoteBranchesResult = await worker.GetRemoteBranches();
+
+                IEnumerable<string> branches = localBranches.Concat(
+                    remoteBranchesResult.IsSuccess
+                        ? remoteBranchesResult
+                            .Value.Where(_ => _ != "origin")
+                            .Select(_ => _.Replace("origin/", ""))
+                        : Array.Empty<string>()
+                );
+
+                workingBranch = useBranch ?? branches.FirstOrDefault(b => b is "main" or "master");
+                if (workingBranch == null)
+                {
+                    throw new FunctionalException("No main or master branch found.");
+                }
+                Logger.Log($"Will use branch: {workingBranch}");
+
+                await worker.Reset().ThrowOnError();
+
+                await worker.Checkout(workingBranch).ThrowOnError();
+            }
+
+            var branchesToDelete = localBranches.Where(b => b != workingBranch);
+            await DeleteNonDefaultBranches(branchesToDelete, worker, workingBranch);
+
+            await worker.Pull().ThrowOnError();
+            Logger.Log("Pulled changes from remote repository.");
+
+            await worker.Prune().ThrowOnError();
         }
-
-        var branchesToDelete = branchesResult.Value.Where(b => b != workingBranch);
-        await DeleteNonDefaultBranches(branchesToDelete, worker, workingBranch).EndOnError();
-
-        await worker.Pull().EndOnError();
-        Logger.Log("Pulled changes from remote repository.");
-
-        await worker.Prune().EndOnError();
-
-        return Result.Success();
+        catch (FunctionalException ex)
+        {
+            ColorfulConsole.Log(ex.Message, ConsoleColor.Red);
+        }
     }
 
-    private static async Task<Result> DeleteNonDefaultBranches(
+    private static async Task DeleteNonDefaultBranches(
         IEnumerable<string> branchesToDelete,
         GitWorker gitRunner,
         string workingBranch
@@ -71,12 +73,11 @@ public static class NukeCommand
     {
         foreach (var branch in branchesToDelete)
         {
-            await gitRunner.DeleteBranch(branch).EndOnError();
+            await gitRunner.DeleteBranch(branch).ThrowOnError();
             Logger.Log($"Deleted branch: {branch}");
         }
 
         Logger.Log($"All branches deleted except for {workingBranch}");
-        return Result.Success();
     }
 
     private static bool RequestConfirmation()
