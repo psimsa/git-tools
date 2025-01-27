@@ -37,6 +37,19 @@ public static class TidyBranchCommand
         {
             return pullResult;
         }
+        Console.WriteLine("Pulled latest changes.");
+
+        string? upstreamBranch = null;
+        var currentUpstreamBranchResult = await worker.GetCurrentUpstreamBranch();
+        if (currentUpstreamBranchResult.IsFailure)
+        {
+            return currentUpstreamBranchResult;
+        }
+        if (currentUpstreamBranchResult.Value.Count > 0)
+        {
+            upstreamBranch = currentUpstreamBranchResult.Value[0];
+            Console.WriteLine($"Current upstream branch: {upstreamBranch}");
+        }
 
         var remoteBranchesResult = await worker.GetRemoteBranches();
 
@@ -53,6 +66,7 @@ public static class TidyBranchCommand
         {
             return Result.Failure("Target branch not found.");
         }
+        Console.WriteLine($"Will use target branch: {targetBranch}");
 
         var backupOfCurrentBranch = $"{workingBranch}-backup";
         var checkoutResult = await worker.CheckoutNew(backupOfCurrentBranch);
@@ -60,6 +74,7 @@ public static class TidyBranchCommand
         {
             return checkoutResult;
         }
+        Console.WriteLine($"Created backup branch: {backupOfCurrentBranch}");
 
         var checkoutTargetResult = await worker.Checkout(targetBranch);
         if (checkoutTargetResult.IsFailure)
@@ -67,47 +82,43 @@ public static class TidyBranchCommand
             return checkoutTargetResult;
         }
 
-        pullResult = await worker.Pull();
-        if (pullResult.IsFailure)
+        var deleteBranchResult = await worker.DeleteBranch(workingBranch);
+        if (deleteBranchResult.IsFailure)
         {
-            return pullResult;
+            return deleteBranchResult;
         }
+        Console.WriteLine($"Deleted branch: {workingBranch}");
 
-        var tmpBranch = $"tmp-{workingBranch}";
-        var checkoutTmpResult = await worker.CheckoutNew(tmpBranch);
-        if (checkoutTmpResult.IsFailure)
+        var checkoutNewWorkingBranchResult = await worker.CheckoutNew(workingBranch);
+        if (checkoutNewWorkingBranchResult.IsFailure)
         {
-            return checkoutTmpResult;
+            return checkoutNewWorkingBranchResult;
         }
+        Console.WriteLine($"Rereated branch {workingBranch} from {targetBranch}");
 
         var mergeResult = await worker.MergeAndSquash(backupOfCurrentBranch);
         if (mergeResult.IsFailure)
         {
             return mergeResult;
         }
+        Console.WriteLine($"Merged {backupOfCurrentBranch} into {workingBranch}");
 
-        var deleteResult = await worker.DeleteBranch(workingBranch);
-        if (deleteResult.IsFailure)
-        {
-            return deleteResult;
-        }
-
-        var checkoutWorkingResult = await worker.CheckoutNew(workingBranch);
-        if (checkoutWorkingResult.IsFailure)
-        {
-            return checkoutWorkingResult;
-        }
-
-        var commitResult = await worker.CommitStaged($"Squashed changes onto {targetBranch}");
+        var commitResult = await worker.CommitStaged($"Tidy branch {workingBranch} based on {targetBranch}");
         if (commitResult.IsFailure)
         {
             return commitResult;
         }
+        Console.WriteLine($"Committed changes to {workingBranch}");
 
-        var deleteTmpResult = await worker.DeleteBranch(tmpBranch);
-        if (deleteTmpResult.IsFailure)
+        if (upstreamBranch != null)
         {
-            return deleteTmpResult;
+            var setUpstreamResult = await worker.SetUpstreamBranch(upstreamBranch);
+            if (setUpstreamResult.IsFailure)
+            {
+                return setUpstreamResult;
+            }
+            Console.WriteLine($"Set upstream branch to {upstreamBranch}");
+            Console.WriteLine("You will likely need to force-push your changes to the remote repository.");
         }
 
         return Result.Success();

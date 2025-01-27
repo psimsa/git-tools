@@ -45,6 +45,12 @@ public class GitWorker(bool isDebug)
     public async Task<Result> SetConfigValue(string key, string value) =>
         await ExecuteGitCommand($"config {key} {value}");
 
+    public async Task<Result<IList<string>>> GetCurrentUpstreamBranch() =>
+        await ExecuteGitCommand("rev-parse --abbrev-ref --symbolic-full-name @{u}");
+
+    public async Task<Result> SetUpstreamBranch(string branch) =>
+        await ExecuteGitCommand($"branch --set-upstream-to={branch}");
+
     private async Task<Result<IList<string>>> ExecuteGitCommand(string command)
     {
         ProcessStartInfo processStartInfo = new ProcessStartInfo
