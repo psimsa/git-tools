@@ -1,7 +1,0 @@
-<Project>
-
-	<ItemGroup>
-		<PackageReference Include="CSharpfunctionalextensions" Version="3.4.3" />
-	</ItemGroup>
-
-</Project>

@@ -1,98 +1,70 @@
-﻿using CSharpFunctionalExtensions;
-using GitTools.Common;
+﻿using GitTools.Common;
 
 namespace GitTools.Commands;
 
 public static class NukeCommand
 {
-    public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch)
+    public static async Task Run(bool debug, bool quiet, bool noSwitchBranch, string? useBranch)
     {
-        var worker = new GitWorker(debug);
-
-        var validRepoResult = await worker.CheckIfValidGitRepo();
-        if (validRepoResult.IsFailure)
+        try
         {
-            return Result.Failure("Not a git repo");
-        }
+            var worker = new GitWorker(debug);
 
-        if (!quiet && !RequestConfirmation())
-            return Result.Failure("User cancelled operation.");
+            await worker.CheckIfValidGitRepo().ThrowOnError("Not a git repo");
 
-        var branchesResult = await worker.GetBranches();
-        if (branchesResult.IsFailure)
-        {
-            return branchesResult;
-        }
-
-        string? workingBranch;
-        Result result;
-
-        if (noSwitchBranch)
-        {
-            var wbresult = await worker.GetCurrentBranch();
-            if (wbresult.IsFailure)
+            if (!quiet && !RequestConfirmation())
             {
-                return wbresult;
-            }
-            Console.WriteLine($"Working branch: {wbresult.Value}");
-            workingBranch = wbresult.Value;
-        }
-        else
-        {
-            var remoteBranchesResult = await worker.GetRemoteBranches();
-
-            IEnumerable<string> branches = branchesResult.Value.Concat(
-                remoteBranchesResult.IsSuccess
-                    ? remoteBranchesResult
-                        .Value.Where(_ => _ != "origin")
-                        .Select(_ => _.Replace("origin/", ""))
-                    : Array.Empty<string>()
-            );
-
-            workingBranch = branches.FirstOrDefault(b => b is "main" or "master");
-            if (workingBranch == null)
-            {
-                return Result.Failure("No main or master branch found.");
-            }
-            Console.WriteLine($"Found main or master branch: {workingBranch}");
-
-            result = await worker.Reset();
-            if (result.IsFailure)
-            {
-                return result;
+                throw new FunctionalException("User cancelled operation.");
             }
 
-            result = await worker.Checkout(workingBranch);
-            if (result.IsFailure)
+            var localBranches = await worker.GetBranches().ThrowOnError();
+
+            string? workingBranch;
+
+            if (noSwitchBranch)
             {
-                return result;
+                workingBranch = (await worker.GetCurrentBranch().ThrowOnError());
+                Logger.Log($"Working branch: {workingBranch}");
             }
-        }
+            else
+            {
+                var remoteBranchesResult = await worker.GetRemoteBranches();
 
-        var branchesToDelete = branchesResult.Value.Where(b => b != workingBranch);
-        result = await DeleteNonDefaultBranches(branchesToDelete, worker, workingBranch);
-        if (result.IsFailure)
+                IEnumerable<string> branches = localBranches.Concat(
+                    remoteBranchesResult.IsSuccess
+                        ? remoteBranchesResult
+                            .Value.Where(_ => _ != "origin")
+                            .Select(_ => _.Replace("origin/", ""))
+                        : Array.Empty<string>()
+                );
+
+                workingBranch = useBranch ?? branches.FirstOrDefault(b => b is "main" or "master");
+                if (workingBranch == null)
+                {
+                    throw new FunctionalException("No main or master branch found.");
+                }
+                Logger.Log($"Will use branch: {workingBranch}");
+
+                await worker.Reset().ThrowOnError();
+
+                await worker.Checkout(workingBranch).ThrowOnError();
+            }
+
+            var branchesToDelete = localBranches.Where(b => b != workingBranch);
+            await DeleteNonDefaultBranches(branchesToDelete, worker, workingBranch);
+
+            await worker.Pull().ThrowOnError();
+            Logger.Log("Pulled changes from remote repository.");
+
+            await worker.Prune().ThrowOnError();
+        }
+        catch (FunctionalException ex)
         {
-            return result;
+            ColorfulConsole.Log(ex.Message, ConsoleColor.Red);
         }
-
-        result = await worker.Pull();
-        if (result.IsFailure)
-        {
-            return result;
-        }
-        Console.WriteLine("Pulled changes from remote repository.");
-
-        result = await worker.Prune();
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
-        return Result.Success();
     }
 
-    private static async Task<Result> DeleteNonDefaultBranches(
+    private static async Task DeleteNonDefaultBranches(
         IEnumerable<string> branchesToDelete,
         GitWorker gitRunner,
         string workingBranch
@@ -100,30 +72,23 @@ public static class NukeCommand
     {
         foreach (var branch in branchesToDelete)
         {
-            var deleteResult = await gitRunner.DeleteBranch(branch);
-            if (deleteResult.IsFailure)
-            {
-                return deleteResult;
-            }
-            Console.WriteLine($"Deleted branch: {branch}");
+            await gitRunner.DeleteBranch(branch).ThrowOnError();
+            Logger.Log($"Deleted branch: {branch}");
         }
 
-        Console.WriteLine($"All branches deleted except for {workingBranch}");
-        return Result.Success();
+        Logger.Log($"All branches deleted except for {workingBranch}");
     }
 
     private static bool RequestConfirmation()
     {
-        Console.WriteLine(
-            "This command will switch to main/master branch remove other local branches."
-        );
-        ColorfulConsole.WriteLine(
+        Logger.Log("This command will switch to main/master branch remove other local branches.");
+        ColorfulConsole.Log(
             "This will undo any local changes and is not reversible.",
             ConsoleColor.Red
         );
-        Console.WriteLine("Are you sure you want to continue? [y/N]");
+        Logger.Log("Are you sure you want to continue? [y/N]");
         var key = Console.ReadKey();
-        Console.WriteLine();
+        Logger.Log();
         return key.KeyChar is 'y' or 'Y';
     }
 }
