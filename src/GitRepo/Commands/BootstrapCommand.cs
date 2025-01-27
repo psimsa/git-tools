@@ -1,40 +1,32 @@
-﻿using CSharpFunctionalExtensions;
-using GitTools.Common;
+﻿using GitTools.Common;
 
 namespace GitTools.Commands;
 
 public static class BootstrapCommand
 {
-    public static async Task<Result> Run(
+    public static async Task Run(
         bool debug,
         string? template,
         string defaultBranch,
         string? userEmail
     )
     {
-        var worker = new GitWorker(debug);
-
-        var validRepoResult = await worker.CheckIfValidGitRepo();
-        if (validRepoResult.IsSuccess)
+        try
         {
-            return Result.Failure("Already in a git repo");
-        }
+            var worker = new GitWorker(debug);
 
-        var result = await worker.Init(defaultBranch);
-        if (result.IsFailure)
-        {
-            return result;
-        }
+            await worker.CheckIfValidGitRepo().ThrowOnError();
 
-        if (!string.IsNullOrWhiteSpace(userEmail))
-        {
-            result = await worker.SetConfigValue("user.email", userEmail);
-            if (result.IsFailure)
+            await worker.Init(defaultBranch).ThrowOnError();
+
+            if (!string.IsNullOrWhiteSpace(userEmail))
             {
-                return result;
+                await worker.SetConfigValue("user.email", userEmail).ThrowOnError();
             }
         }
-
-        return result;
+        catch (FunctionalException e)
+        {
+            ColorfulConsole.Log(e.Message, ConsoleColor.Red);
+        }
     }
 }

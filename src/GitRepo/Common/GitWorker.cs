@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using CSharpFunctionalExtensions;
 
 namespace GitTools.Common;
 
@@ -15,6 +14,9 @@ public class GitWorker(bool isDebug)
     public async Task<Result> Checkout(string branchName) =>
         await ExecuteGitCommand($"checkout {branchName} --force");
 
+    public async Task<Result> CheckoutNew(string branchName) =>
+        await ExecuteGitCommand($"checkout -b {branchName} --force");
+
     public async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
 
     public async Task<Result> Init(string branchName) =>
@@ -23,18 +25,33 @@ public class GitWorker(bool isDebug)
     public async Task<Result> DeleteBranch(string branch) =>
         await ExecuteGitCommand($"branch -D {branch}");
 
-    public async Task<Result<string>> GetCurrentBranch() =>
-        (await ExecuteGitCommand("branch --show-current")).Map(r => r[0]);
+    public async Task<Result<string>> GetCurrentBranch()
+    {
+        var result = await ExecuteGitCommand("branch --show-current");
+        return Result<string>.SuccessIf(result.IsSuccess, result.Value![0], result.Error);
+    }
 
     public async Task<Result> Prune() => await ExecuteGitCommand("prune");
 
     public async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
+
+    public async Task<Result> MergeAndSquash(string branch) =>
+        await ExecuteGitCommand($"merge --squash {branch}");
+
+    public async Task<Result> CommitStaged(string message) =>
+        await ExecuteGitCommand($"commit -m \"{message}\"");
 
     public async Task<Result> CheckIfValidGitRepo() =>
         await ExecuteGitCommand("rev-parse --is-inside-work-tree");
 
     public async Task<Result> SetConfigValue(string key, string value) =>
         await ExecuteGitCommand($"config {key} {value}");
+
+    public async Task<Result<IList<string>>> GetCurrentUpstreamBranch() =>
+        await ExecuteGitCommand("rev-parse --abbrev-ref --symbolic-full-name @{u}");
+
+    public async Task<Result> SetUpstreamBranch(string branch) =>
+        await ExecuteGitCommand($"branch --set-upstream-to={branch}");
 
     private async Task<Result<IList<string>>> ExecuteGitCommand(string command)
     {
@@ -61,7 +78,7 @@ public class GitWorker(bool isDebug)
                 return;
             gitOutputLines.Add(e.Data);
             if (isDebug)
-                Console.WriteLine(e.Data);
+                Logger.Log(e.Data);
         };
 
         process.ErrorDataReceived += (sender, e) =>
@@ -70,7 +87,7 @@ public class GitWorker(bool isDebug)
                 return;
             sbError.AppendLine(e.Data);
             if (isDebug)
-                Console.WriteLine(e.Data);
+                Logger.Log(e.Data);
         };
 
         process.Start();
@@ -81,6 +98,6 @@ public class GitWorker(bool isDebug)
         int code = process.ExitCode;
         process.Close();
 
-        return Result.SuccessIf(code == 0, gitOutputLines as IList<string>, sbError.ToString());
+        return Result<IList<string>>.SuccessIf(code == 0, gitOutputLines as IList<string>, sbError.ToString());
     }
 }
