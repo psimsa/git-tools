@@ -11,6 +11,8 @@ SetupNukeCommand(rootCommand, debugOption);
 
 SetupBootstrapCommand(rootCommand, debugOption);
 
+SetupTidyBranchCommand(rootCommand, debugOption);
+
 await rootCommand.InvokeAsync(args);
 
 static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
@@ -23,6 +25,7 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
         "Do not ask for confirmation"
     );
     nukeCommand.AddOption(quietOption);
+
     var noSwitchBranchOption = new Option<bool>(
         ["--no-switch-branch", "-n"],
         () => false,
@@ -30,10 +33,17 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
     );
     nukeCommand.AddOption(noSwitchBranchOption);
 
+    var useBranchOption = new Option<string?>(
+        new[] { "--use-branch", "-b" },
+        () => null,
+        "Branch to use instead of master/main branch"
+    );
+    nukeCommand.AddOption(useBranchOption);
+
     nukeCommand.SetHandler(
-        async (debug, quiet, noSwitchBranch) =>
+        async (debug, quiet, noSwitchBranch, useBranch) =>
         {
-            var result = await NukeCommand.Run(debug, quiet, noSwitchBranch);
+            var result = await NukeCommand.Run(debug, quiet, noSwitchBranch, useBranch);
             if (result.IsFailure)
             {
                 ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
@@ -41,9 +51,44 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
         },
         debugOption,
         quietOption,
-        noSwitchBranchOption
+        noSwitchBranchOption,
+        useBranchOption
     );
     rootCommand.Add(nukeCommand);
+}
+
+static void SetupTidyBranchCommand(RootCommand rootCommand, Option<bool> debugOption)
+{
+    var tidyBranchCommand = new Command("tidy-branch", "Create single squashed commit from current branch rebased onto another branch (master/main by default)");
+
+    var quietOption = new Option<bool>(
+        ["--quiet", "-q"],
+        () => false,
+        "Do not ask for confirmation"
+    );
+    tidyBranchCommand.AddOption(quietOption);
+
+    var targetBranchOption = new Option<string?>(
+        new[] { "--target-branch", "-t" },
+        () => null,
+        "Branch to rebase onto"
+    );
+    tidyBranchCommand.AddOption(targetBranchOption);
+
+    tidyBranchCommand.SetHandler(
+        async (debug, quiet, targetBranch) =>
+        {
+            var result = await TidyBranchCommand.Run(debug, quiet, targetBranch);
+            if (result.IsFailure)
+            {
+                ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
+            }
+        },
+        debugOption,
+        quietOption,
+        targetBranchOption
+    );
+    rootCommand.Add(tidyBranchCommand);
 }
 
 static void SetupBootstrapCommand(RootCommand rootCommand, Option<bool> debugOption)

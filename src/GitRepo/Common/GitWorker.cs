@@ -15,6 +15,9 @@ public class GitWorker(bool isDebug)
     public async Task<Result> Checkout(string branchName) =>
         await ExecuteGitCommand($"checkout {branchName} --force");
 
+    public async Task<Result> CheckoutNew(string branchName) =>
+        await ExecuteGitCommand($"checkout -b {branchName} --force");
+
     public async Task<Result> Reset() => await ExecuteGitCommand("reset --hard");
 
     public async Task<Result> Init(string branchName) =>
@@ -29,6 +32,12 @@ public class GitWorker(bool isDebug)
     public async Task<Result> Prune() => await ExecuteGitCommand("prune");
 
     public async Task<Result> Pull() => await ExecuteGitCommand("pull --prune");
+
+    public async Task<Result> MergeAndSquash(string branch) =>
+        await ExecuteGitCommand($"merge --squash {branch}");
+
+    public async Task<Result> CommitStaged(string message) =>
+        await ExecuteGitCommand($"commit -m \"{message}\"");
 
     public async Task<Result> CheckIfValidGitRepo() =>
         await ExecuteGitCommand("rev-parse --is-inside-work-tree");

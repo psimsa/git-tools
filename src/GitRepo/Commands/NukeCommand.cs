@@ -5,7 +5,7 @@ namespace GitTools.Commands;
 
 public static class NukeCommand
 {
-    public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch)
+    public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch, string? useBranch)
     {
         var worker = new GitWorker(debug);
 
@@ -49,12 +49,12 @@ public static class NukeCommand
                     : Array.Empty<string>()
             );
 
-            workingBranch = branches.FirstOrDefault(b => b is "main" or "master");
+            workingBranch = useBranch ?? branches.FirstOrDefault(b => b is "main" or "master");
             if (workingBranch == null)
             {
                 return Result.Failure("No main or master branch found.");
             }
-            Console.WriteLine($"Found main or master branch: {workingBranch}");
+            Console.WriteLine($"Will use branch: {workingBranch}");
 
             result = await worker.Reset();
             if (result.IsFailure)
