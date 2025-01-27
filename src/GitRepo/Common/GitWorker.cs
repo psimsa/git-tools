@@ -76,7 +76,7 @@ public class GitWorker(bool isDebug)
                 return;
             gitOutputLines.Add(e.Data);
             if (isDebug)
-                Console.WriteLine(e.Data);
+                Logger.Log(e.Data);
         };
 
         process.ErrorDataReceived += (sender, e) =>
@@ -85,7 +85,7 @@ public class GitWorker(bool isDebug)
                 return;
             sbError.AppendLine(e.Data);
             if (isDebug)
-                Console.WriteLine(e.Data);
+                Logger.Log(e.Data);
         };
 
         process.Start();

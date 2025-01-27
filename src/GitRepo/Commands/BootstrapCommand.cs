@@ -14,25 +14,13 @@ public static class BootstrapCommand
     {
         var worker = new GitWorker(debug);
 
-        var validRepoResult = await worker.CheckIfValidGitRepo();
-        if (validRepoResult.IsSuccess)
-        {
-            return Result.Failure("Already in a git repo");
-        }
+        await worker.CheckIfValidGitRepo().EndOnError();
 
-        var result = await worker.Init(defaultBranch);
-        if (result.IsFailure)
-        {
-            return result;
-        }
+        var result = await worker.Init(defaultBranch).EndOnError();
 
         if (!string.IsNullOrWhiteSpace(userEmail))
         {
-            result = await worker.SetConfigValue("user.email", userEmail);
-            if (result.IsFailure)
-            {
-                return result;
-            }
+            result = await worker.SetConfigValue("user.email", userEmail).EndOnError();
         }
 
         return result;

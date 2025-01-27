@@ -5,37 +5,28 @@ namespace GitTools.Commands;
 
 public static class NukeCommand
 {
-    public static async Task<Result> Run(bool debug, bool quiet, bool noSwitchBranch, string? useBranch)
+    public static async Task<Result> Run(
+        bool debug,
+        bool quiet,
+        bool noSwitchBranch,
+        string? useBranch
+    )
     {
         var worker = new GitWorker(debug);
 
-        var validRepoResult = await worker.CheckIfValidGitRepo();
-        if (validRepoResult.IsFailure)
-        {
-            return Result.Failure("Not a git repo");
-        }
+        await worker.CheckIfValidGitRepo().EndOnError("Not a git repo");
 
         if (!quiet && !RequestConfirmation())
             return Result.Failure("User cancelled operation.");
 
-        var branchesResult = await worker.GetBranches();
-        if (branchesResult.IsFailure)
-        {
-            return branchesResult;
-        }
+        var branchesResult = await worker.GetBranches().EndOnError();
 
         string? workingBranch;
-        Result result;
 
         if (noSwitchBranch)
         {
-            var wbresult = await worker.GetCurrentBranch();
-            if (wbresult.IsFailure)
-            {
-                return wbresult;
-            }
-            Console.WriteLine($"Working branch: {wbresult.Value}");
-            workingBranch = wbresult.Value;
+            workingBranch = (await worker.GetCurrentBranch().EndOnError()).Value;
+            Logger.Log($"Working branch: {workingBranch}");
         }
         else
         {
@@ -54,40 +45,20 @@ public static class NukeCommand
             {
                 return Result.Failure("No main or master branch found.");
             }
-            Console.WriteLine($"Will use branch: {workingBranch}");
+            Logger.Log($"Will use branch: {workingBranch}");
 
-            result = await worker.Reset();
-            if (result.IsFailure)
-            {
-                return result;
-            }
+            await worker.Reset().EndOnError();
 
-            result = await worker.Checkout(workingBranch);
-            if (result.IsFailure)
-            {
-                return result;
-            }
+            await worker.Checkout(workingBranch).EndOnError();
         }
 
         var branchesToDelete = branchesResult.Value.Where(b => b != workingBranch);
-        result = await DeleteNonDefaultBranches(branchesToDelete, worker, workingBranch);
-        if (result.IsFailure)
-        {
-            return result;
-        }
+        await DeleteNonDefaultBranches(branchesToDelete, worker, workingBranch).EndOnError();
 
-        result = await worker.Pull();
-        if (result.IsFailure)
-        {
-            return result;
-        }
-        Console.WriteLine("Pulled changes from remote repository.");
+        await worker.Pull().EndOnError();
+        Logger.Log("Pulled changes from remote repository.");
 
-        result = await worker.Prune();
-        if (result.IsFailure)
-        {
-            return result;
-        }
+        await worker.Prune().EndOnError();
 
         return Result.Success();
     }
@@ -100,30 +71,24 @@ public static class NukeCommand
     {
         foreach (var branch in branchesToDelete)
         {
-            var deleteResult = await gitRunner.DeleteBranch(branch);
-            if (deleteResult.IsFailure)
-            {
-                return deleteResult;
-            }
-            Console.WriteLine($"Deleted branch: {branch}");
+            await gitRunner.DeleteBranch(branch).EndOnError();
+            Logger.Log($"Deleted branch: {branch}");
         }
 
-        Console.WriteLine($"All branches deleted except for {workingBranch}");
+        Logger.Log($"All branches deleted except for {workingBranch}");
         return Result.Success();
     }
 
     private static bool RequestConfirmation()
     {
-        Console.WriteLine(
-            "This command will switch to main/master branch remove other local branches."
-        );
-        ColorfulConsole.WriteLine(
+        Logger.Log("This command will switch to main/master branch remove other local branches.");
+        ColorfulConsole.Log(
             "This will undo any local changes and is not reversible.",
             ConsoleColor.Red
         );
-        Console.WriteLine("Are you sure you want to continue? [y/N]");
+        Logger.Log("Are you sure you want to continue? [y/N]");
         var key = Console.ReadKey();
-        Console.WriteLine();
+        Logger.Log();
         return key.KeyChar is 'y' or 'Y';
     }
 }

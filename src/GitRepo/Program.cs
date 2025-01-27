@@ -46,7 +46,7 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
             var result = await NukeCommand.Run(debug, quiet, noSwitchBranch, useBranch);
             if (result.IsFailure)
             {
-                ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
+                ColorfulConsole.Log(result.Error, ConsoleColor.Red);
             }
         },
         debugOption,
@@ -59,7 +59,10 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
 
 static void SetupTidyBranchCommand(RootCommand rootCommand, Option<bool> debugOption)
 {
-    var tidyBranchCommand = new Command("tidy-branch", "Create single squashed commit from current branch rebased onto another branch (master/main by default)");
+    var tidyBranchCommand = new Command(
+        "tidy-branch",
+        "Create single squashed commit from current branch rebased onto another branch (master/main by default)"
+    );
 
     var quietOption = new Option<bool>(
         ["--quiet", "-q"],
@@ -81,7 +84,7 @@ static void SetupTidyBranchCommand(RootCommand rootCommand, Option<bool> debugOp
             var result = await TidyBranchCommand.Run(debug, quiet, targetBranch);
             if (result.IsFailure)
             {
-                ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
+                ColorfulConsole.Log(result.Error, ConsoleColor.Red);
             }
         },
         debugOption,
@@ -115,7 +118,7 @@ static void SetupBootstrapCommand(RootCommand rootCommand, Option<bool> debugOpt
             var result = await BootstrapCommand.Run(debug, template, defaultBranch, userEmail);
             if (result.IsFailure)
             {
-                ColorfulConsole.WriteLine(result.Error, ConsoleColor.Red);
+                ColorfulConsole.Log(result.Error, ConsoleColor.Red);
             }
         },
         debugOption,
