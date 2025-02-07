@@ -1,13 +1,9 @@
-# When publishing a release from a tag, build the project and publish the packages to nuget.
-# Package version should correspond to the tag. If tag is v1.0.1, nuget package should have 1.0.1 as a version.
-# Nuget key will be fetched from Akeyless using appropriate action.
-
 name: Publish to NuGet
 
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   build:
@@ -30,8 +26,9 @@ jobs:
             - name: "/keys/nuget"
               output-name: "NUGET_API_KEY"
       - name: Create NuGet package
-        # need to remove 'v' from the tag
         run: dotnet pack -c Release -o ./artifacts -p:Version=${GITHUB_REF#refs/tags/v}
+      - name: Publish package to nuget.org
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ steps.fetch-secrets.outputs.NUGET_API_KEY }}
       - name: Publish NuGet package as artifact
         uses: actions/upload-artifact@v4
         with:
