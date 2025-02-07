@@ -1,6 +1,3 @@
 {
-  "extends": [
-    "config:recommended",
-    "github>ofcoursedude/renovate-config"
-  ]
+  "extends": ["config:recommended", "github>ofcoursedude/renovate-config"]
 }

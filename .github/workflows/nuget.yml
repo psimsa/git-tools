@@ -1,0 +1,43 @@
+# When publishing a release from a tag, build the project and publish the packages to nuget.
+# Package version should correspond to the tag. If tag is v1.0.1, nuget package should have 1.0.1 as a version.
+# Nuget key will be fetched from Akeyless using appropriate action.
+
+name: Publish to NuGet
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Fetch static secrets from Akeyless
+        uses: akeyless-community/akeyless-github-action@v1.0.1
+        id: fetch-secrets
+        with:
+          access-id: ${{ secrets.AKEYLESS_ACCESS_ID }}
+          access-key: ${{ secrets.AKEYLESS_ACCESS_KEY }}
+          access-type: access_key
+          api-url: https://api.akeyless.io
+          static-secrets: |
+            - name: "/keys/nuget"
+              output-name: "NUGET_API_KEY"
+      - name: Create version variable
+        id: version
+        run: |
+          echo "version=$(echo ${GITHUB_REF#refs/tags/} | sed 's/v//')" >> $GITHUB_ENV
+      - name: Create NuGet package
+        run: dotnet pack -c Release -o ./artifacts -p:Version=${{ steps.version.outputs.version }}
+      - name: Publish NuGet package as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: ./artifacts
