@@ -58,6 +58,7 @@ jobs:
         with:
           name: ${{ matrix.publish }}
           path: ./publish/${{ matrix.publish }}
+          retention-days: 7
 
   publish-package:
     runs-on: ubuntu-latest
@@ -75,3 +76,4 @@ jobs:
         with:
           name: nuget
           path: ./artifacts
+          retention-days: 7
