@@ -33,7 +33,7 @@ jobs:
       - name: Create version variable
         id: version
         run: |
-          echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/tags/} | sed 's/v//')"
+          echo "version=$(echo ${GITHUB_REF#refs/tags/} | sed 's/v//')" >> $GITHUB_ENV
       - name: Create NuGet package
         run: dotnet pack -c Release -o ./artifacts -p:Version=${{ steps.version.outputs.version }}
       - name: Publish NuGet package as artifact
