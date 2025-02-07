@@ -30,7 +30,8 @@ jobs:
             - name: "/keys/nuget"
               output-name: "NUGET_API_KEY"
       - name: Create NuGet package
-        run: dotnet pack -c Release -o ./artifacts -p:Version=${{  github.ref_name }}
+        # need to remove 'v' from the tag
+        run: dotnet pack -c Release -o ./artifacts -p:Version=${GITHUB_REF#refs/tags/v}
       - name: Publish NuGet package as artifact
         uses: actions/upload-artifact@v4
         with:
