@@ -1,11 +1,10 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using GitTools.Commands;
 using GitTools.Common;
 
-var debugOption = new Option<bool>(new[] { "--debug", "-d" }, "Show git command output");
+var debugOption = new Option<bool>(["--debug", "-d"], () => false, "Show git command output");
 var rootCommand = new RootCommand("Suite of small git utilities");
-rootCommand.Add(debugOption);
+rootCommand.AddGlobalOption(debugOption);
 
 SetupNukeCommand(rootCommand, debugOption);
 SetupBootstrapCommand(rootCommand, debugOption);
@@ -16,20 +15,19 @@ return await rootCommand.InvokeAsync(args);
 static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
 {
     var nukeCommand = new Command("nuke", "Clean-up current repo");
-    var quietOption = new Option<bool>(new[] { "--quiet", "-q" }, "Do not ask for confirmation");
-    var noSwitchBranchOption = new Option<bool>(new[] { "--no-switch-branch", "-n" }, "Do not switch to main or master branch");
-    var useBranchOption = new Option<string?>(new[] { "--use-branch", "-b" }, "Branch to use instead of master/main branch");
-    nukeCommand.Add(quietOption);
-    nukeCommand.Add(noSwitchBranchOption);
-    nukeCommand.Add(useBranchOption);
+    var quietOption = new Option<bool>(["--quiet", "-q"], () => false, "Do not ask for confirmation");
+    var noSwitchBranchOption = new Option<bool>(["--no-switch-branch", "-n"], () => false, "Do not switch to main or master branch");
+    var useBranchOption = new Option<string?>(["--use-branch", "-b"], () => null, "Branch to use instead of master/main branch");
+    nukeCommand.AddOption(quietOption);
+    nukeCommand.AddOption(noSwitchBranchOption);
+    nukeCommand.AddOption(useBranchOption);
 
-    nukeCommand.Handler = CommandHandler.Create((ParseResult parseResult) =>
-        NukeCommand.Run(
-            parseResult.GetValueForOption(debugOption),
-            parseResult.GetValueForOption(quietOption),
-            parseResult.GetValueForOption(noSwitchBranchOption),
-            parseResult.GetValueForOption(useBranchOption)
-        ));
+    nukeCommand.SetHandler(NukeCommand.Run,
+        debugOption,
+        quietOption,
+        noSwitchBranchOption,
+        useBranchOption
+    );
     rootCommand.Add(nukeCommand);
 }
 
@@ -39,36 +37,37 @@ static void SetupTidyBranchCommand(RootCommand rootCommand, Option<bool> debugOp
         "tidy-branch",
         "Create single squashed commit from current branch rebased onto another branch (master/main by default)"
     );
-    var quietOption = new Option<bool>(new[] { "--quiet", "-q" }, "Do not ask for confirmation");
-    var targetBranchOption = new Option<string?>(new[] { "--target-branch", "-t" }, "Branch to rebase onto");
-    tidyBranchCommand.Add(quietOption);
-    tidyBranchCommand.Add(targetBranchOption);
+    var quietOption = new Option<bool>(["--quiet", "-q"], () => false, "Do not ask for confirmation");
+    var targetBranchOption = new Option<string?>(["--target-branch", "-t"], () => null, "Branch to rebase onto");
+    tidyBranchCommand.AddOption(quietOption);
+    tidyBranchCommand.AddOption(targetBranchOption);
 
-    tidyBranchCommand.Handler = CommandHandler.Create((ParseResult parseResult) =>
-        TidyBranchCommand.Run(
-            parseResult.GetValueForOption(debugOption),
-            parseResult.GetValueForOption(quietOption),
-            parseResult.GetValueForOption(targetBranchOption)
-        ));
+    tidyBranchCommand.SetHandler(TidyBranchCommand.Run,
+        debugOption,
+        quietOption,
+        targetBranchOption
+    );
     rootCommand.Add(tidyBranchCommand);
 }
 
 static void SetupBootstrapCommand(RootCommand rootCommand, Option<bool> debugOption)
 {
     var bootstrapCommand = new Command("bootstrap", "Bootstrap repo from parameters");
-    var templateOption = new Option<string>(new[] { "--template", "-t" }, "Template to use");
-    var defaultBranchOption = new Option<string>(new[] { "--default-branch", "-b" }, "Default branch to use");
-    var userEmailOption = new Option<string>(new[] { "--user-email", "-e" }, "User email to use");
-    bootstrapCommand.Add(templateOption);
-    bootstrapCommand.Add(defaultBranchOption);
-    bootstrapCommand.Add(userEmailOption);
+    var templateOption = new Option<string>(["--template", "-t"], "Template to use")
+    {
+        IsHidden = true,
+    };
+    var defaultBranchOption = new Option<string>(["--default-branch", "-b"], () => "main", "Default branch to use");
+    var userEmailOption = new Option<string>(["--user-email", "-e"], "User email to use");
+    bootstrapCommand.AddOption(templateOption);
+    bootstrapCommand.AddOption(defaultBranchOption);
+    bootstrapCommand.AddOption(userEmailOption);
 
-    bootstrapCommand.Handler = CommandHandler.Create((ParseResult parseResult) =>
-        BootstrapCommand.Run(
-            parseResult.GetValueForOption(debugOption),
-            parseResult.GetValueForOption(templateOption),
-            parseResult.GetValueForOption(defaultBranchOption),
-            parseResult.GetValueForOption(userEmailOption)
-        ));
+    bootstrapCommand.SetHandler(BootstrapCommand.Run,
+        debugOption,
+        templateOption,
+        defaultBranchOption,
+        userEmailOption
+    );
     rootCommand.Add(bootstrapCommand);
 }
