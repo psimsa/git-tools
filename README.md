@@ -1,6 +1,6 @@
 # Git Repo Tools
 
-[![CodeFactor](https://www.codefactor.io/repository/github/<secret_hidden>/git-tools/badge)](https://www.codefactor.io/repository/github/<secret_hidden>/git-tools)
+[![CodeFactor](https://www.codefactor.io/repository/github/actual_username/git-tools/badge)](https://www.codefactor.io/repository/github/actual_username/git-tools)
 
 A small extension to git that provides useful utilities for repository management. Currently contains 3 commands to help streamline your git workflow.
 
