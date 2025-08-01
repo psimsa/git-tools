@@ -32,13 +32,11 @@ static void SetupNukeCommand(RootCommand rootCommand, Option<bool> debugOption)
     nukeCommand.Add(noSwitchBranchOption);
     nukeCommand.Add(useBranchOption);
 
-    nukeCommand.SetAction(async (System.CommandLine.ParseResult parseResult) =>
-        await NukeCommand.Run(
-            parseResult.GetValue(debugOption),
-            parseResult.GetValue(quietOption),
-            parseResult.GetValue(noSwitchBranchOption),
-            parseResult.GetValue(useBranchOption)
-        ));
+    nukeCommand.SetHandler(
+        async (bool debug, bool quiet, bool noSwitchBranch, string? useBranch) =>
+            await NukeCommand.Run(debug, quiet, noSwitchBranch, useBranch),
+        debugOption, quietOption, noSwitchBranchOption, useBranchOption
+    );
     rootCommand.Add(nukeCommand);
 }
 
