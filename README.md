@@ -26,7 +26,12 @@ git repo nuke [options]
 - `--use-branch, -b <branch>`: Use specific branch instead of master/main
 
 ### `git repo tidy-branch`
-Creates a clean, squashed commit from your current branch and rebases it onto another branch (master/main by default).
+Creates a clean, squashed commit from your current branch and rebases it onto another branch (master/main by default). The process includes:
+1. Creating a backup branch from the current branch
+2. Deleting the current branch
+3. Recreating it from the target branch
+4. Merging and squashing the backup branch into the new branch
+5. Committing the changes
 
 **Usage:**
 ```bash
@@ -38,7 +43,7 @@ git repo tidy-branch [options]
 - `--target-branch, -t <branch>`: Branch to rebase onto (default: master/main)
 
 ### `git repo bootstrap`
-Initialize a new repository with customizable parameters using templates.
+Initialize a new repository with a specified default branch and optional user email configuration.
 
 **Usage:**
 ```bash
@@ -46,9 +51,8 @@ git repo bootstrap [options]
 ```
 
 **Options:**
-- `--template, -t <template>`: Template to use (hidden option)
 - `--default-branch, -b <branch>`: Default branch to use (default: main)
-- `--user-email, -e <email>`: User email to use
+- `--user-email, -e <email>`: User email to configure for the repository
 
 ## Installation
 
