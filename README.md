@@ -26,7 +26,7 @@ git repo nuke [options]
 - `--use-branch, -b <branch>`: Use specific branch instead of master/main
 
 ### `git repo tidy-branch`
-Creates a clean, squashed commit from your current branch and rebases it onto another branch (master/main by default). The process includes:
+Creates a clean, squashed commit from your current branch by recreating it from another branch (master/main by default) and merging your changes. The process includes:
 1. Creating a backup branch from the current branch
 2. Deleting the current branch
 3. Recreating it from the target branch
