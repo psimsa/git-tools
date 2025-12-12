@@ -37,7 +37,7 @@ jobs:
       - name: Publish GitRepo
         run: dotnet publish -c Release src/GitRepo/GitRepo.csproj --runtime ${{ matrix.publish }} -o ./publish/${{ matrix.publish }} -p:PublishAot=true
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.publish }}
           path: ./publish/${{ matrix.publish }}
@@ -55,7 +55,7 @@ jobs:
       - name: Create NuGet package
         run: dotnet pack -c Release -o ./artifacts
       - name: Publish NuGet package as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: nuget
           path: ./artifacts
