@@ -29,7 +29,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.318
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -51,7 +51,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.318
       - name: Create NuGet package
         run: dotnet pack -c Release -o ./artifacts
       - name: Publish NuGet package as artifact
