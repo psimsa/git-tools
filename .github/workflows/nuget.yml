@@ -16,7 +16,7 @@ jobs:
         with:
           dotnet-version: 11.0.100
       - name: Fetch static secrets from Akeyless
-        uses: akeyless-community/akeyless-github-action@v1.3.0
+        uses: akeyless-community/akeyless-github-action@v1.3.1
         id: fetch-secrets
         with:
           access-id: ${{ secrets.AKEYLESS_ACCESS_ID }}
